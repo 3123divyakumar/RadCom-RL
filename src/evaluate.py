@@ -215,6 +215,7 @@ def write_tex(rows: list[dict]) -> None:
             rf"\newcommand{{\{short}tput}}{{{m['throughput']:.2f}}}",
             rf"\newcommand{{\{short}urg}}{{{100 * m['urgent_delivered']:.1f}}}",
             rf"\newcommand{{\{short}wait}}{{{m['urgent_wait_s']:.2f}}}",
+            rf"\newcommand{{\{short}radar}}{{{100 * m['radar_fraction']:.0f}}}",
         ]
     episodes = max(settles_at(name) for name in config.SCENARIOS)
     lines.append(rf"\newcommand{{\settle}}{{{int(round(episodes, -1))}}}")
