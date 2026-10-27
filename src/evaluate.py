@@ -60,7 +60,12 @@ def compare() -> list[dict]:
     for name, scenario in config.SCENARIOS.items():
         dqn = []
         for seed in SEEDS:
-            model = DQN.load(RUNS / f"{name}_s{seed}_dqn.zip")
+            # The learning-rate schedule was saved as a function of src.train
+            # run as __main__, so it cannot be read back here. Only training
+            # uses it; the greedy test never does.
+            model = DQN.load(RUNS / f"{name}_s{seed}_dqn.zip",
+                             custom_objects={"learning_rate": 0.0,
+                                             "lr_schedule": lambda _: 0.0})
             dqn.append({"scenario": name, "policy": "DQN", "seed": seed,
                         **evaluate(model, scenario)})
         rows += dqn
@@ -131,7 +136,13 @@ def figure_curve() -> None:
         ax.annotate(f"settles at {level:.0f}", xy=(x[-1], mean[-1]),
                     xytext=(-2, -14), textcoords="offset points", ha="right",
                     color=INK_2, fontsize=6.5)
+        # The untrained policy scores far below everything after it; zoom on
+        # the learning and say where the curve starts instead of drawing it.
+        ax.text(0.97, 0.2, f"untrained start: −{abs(mean[0]):.0f}\n(below the axis)",
+                transform=ax.transAxes, ha="right", color=INK_2, fontsize=6)
         ax.set_xlabel("training episode", color=INK_2)
+    axes[0].set_ylim(-40, 370)
+    axes[0].set_yticks([0, 100, 200, 300])
     axes[0].set_ylabel("test return / episode", color=INK_2)
     fig.tight_layout(pad=0.4)
     fig.savefig(RUNS / "fig_report_curve.png", dpi=300, facecolor=SURFACE)
@@ -178,14 +189,79 @@ def figure_tradeoff(rows: list[dict]) -> None:
     plt.close(fig)
 
 
+# --- The report's numbers, written from the results, never typed by hand -----
+
+REPORT = RUNS.parent / "report"
+SHORT = {"highway": "hw", "city": "city"}
+
+
+def settles_at(name: str, share: float = 0.9) -> int:
+    """First training episode where the mean curve reaches `share` of its level."""
+    x, runs = curves(name)
+    mean = runs.mean(axis=0)
+    level, _ = settled(mean)
+    return int(x[np.argmax(mean >= share * level)])
+
+
+def write_tex(rows: list[dict]) -> None:
+    """report/numbers.tex (one macro per number) and report/table.tex."""
+    lines = []
+    for name, short in SHORT.items():
+        m = next(r for r in rows if r["scenario"] == name
+                 and r["policy"] == "DQN" and r["seed"] == "mean")
+        lines += [
+            rf"\newcommand{{\{short}miss}}{{{100 * m['miss_rate']:.1f}}}",
+            rf"\newcommand{{\{short}catch}}{{{100 * (1 - m['miss_rate']):.1f}}}",
+            rf"\newcommand{{\{short}tput}}{{{m['throughput']:.2f}}}",
+            rf"\newcommand{{\{short}urg}}{{{100 * m['urgent_delivered']:.1f}}}",
+            rf"\newcommand{{\{short}wait}}{{{m['urgent_wait_s']:.2f}}}",
+        ]
+    episodes = max(settles_at(name) for name in config.SCENARIOS)
+    lines.append(rf"\newcommand{{\settle}}{{{int(round(episodes, -1))}}}")
+    (REPORT / "numbers.tex").write_text("\n".join(lines) + "\n")
+
+    def cell(x, fmt, scale=1.0):
+        return "--" if np.isnan(x) else fmt.format(scale * x)
+
+    body = []
+    for name in config.SCENARIOS:
+        body.append(rf"\multicolumn{{6}}{{l}}{{\emph{{{name.capitalize()}}}}}\\")
+        for r in rows:
+            if r["scenario"] != name or (r["policy"] == "DQN" and r["seed"] != "mean"):
+                continue
+            label = r"\textbf{DQN} (5 seeds)" if r["policy"] == "DQN" else r["policy"]
+            body.append(" & ".join([
+                label, cell(r["return"], "{:.0f}"),
+                cell(r["miss_rate"], "{:.1f}", 100), cell(r["throughput"], "{:.2f}"),
+                cell(r["urgent_delivered"], "{:.0f}", 100),
+                cell(r["urgent_wait_s"], "{:.2f}")]) + r"\\")
+    (REPORT / "table.tex").write_text("\n".join([
+        r"\begin{table}[t]",
+        r"\caption{Test results: 200 identical drives per policy}",
+        r"\label{tab:res}",
+        r"\centering\footnotesize",
+        r"\setlength{\tabcolsep}{3pt}",
+        r"\begin{tabular}{lrrrrr}",
+        r"\toprule",
+        r"Policy & Return & Missed & Sent & Urgent & Urgent \\",
+        r" & /episode & hazards \% & /step & sent \% & wait (s) \\",
+        r"\midrule",
+        *body,
+        r"\bottomrule",
+        r"\end{tabular}",
+        r"\end{table}",
+    ]) + "\n")
+
+
 def main() -> int:
     rows = compare()
     write(rows)
     show(rows)
     figure_curve()
     figure_tradeoff(rows)
+    write_tex(rows)
     print(f"\nwrote {RUNS / 'comparison.csv'}, fig_report_curve.png, "
-          f"fig_report_tradeoff.png")
+          f"fig_report_tradeoff.png, report/numbers.tex, report/table.tex")
     return 0
 
 
