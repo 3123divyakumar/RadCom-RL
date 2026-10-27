@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+runs/*_monitor.monitor.csv
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
