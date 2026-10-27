@@ -1,0 +1,15 @@
+﻿training 10 runs (5 seeds per scenario), 200,000 steps each, in parallel...
+  highway  seed 0 | return   269.9 | miss 0.066 | throughput 0.60 | urgent wait 0.01 s | spread 8.3%
+  highway  seed 1 | return   282.1 | miss 0.040 | throughput 0.33 | urgent wait 0.00 s | spread 12.4%
+  highway  seed 2 | return   272.3 | miss 0.058 | throughput 0.51 | urgent wait 0.00 s | spread 10.2%
+  highway  seed 3 | return   285.1 | miss 0.036 | throughput 0.32 | urgent wait 0.01 s | spread 16.3%
+  highway  seed 4 | return   284.2 | miss 0.038 | throughput 0.33 | urgent wait 0.01 s | spread 15.0%
+  city     seed 0 | return   246.2 | miss 0.083 | throughput 0.59 | urgent wait 0.02 s | spread 6.8%
+  city     seed 1 | return   183.2 | miss 0.034 | throughput 0.36 | urgent wait 0.01 s | spread 28.7%
+  city     seed 2 | return   254.5 | miss 0.082 | throughput 0.59 | urgent wait 0.01 s | spread 43.9%
+  city     seed 3 | return   245.9 | miss 0.083 | throughput 0.59 | urgent wait 0.02 s | spread 39.6%
+  city     seed 4 | return   243.5 | miss 0.083 | throughput 0.60 | urgent wait 0.03 s | spread 38.0%
+  highway  MEAN   | return   278.7 | miss 0.048 | throughput 0.42 | urgent wait 0.01 s
+  city     MEAN   | return   234.6 | miss 0.073 | throughput 0.55 | urgent wait 0.02 s
+
+wrote C:\Users\anand\Desktop\RadCom-RL\runs\summary.csv

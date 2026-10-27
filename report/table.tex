@@ -1,0 +1,23 @@
+\begin{table}[t]
+\caption{Test results: 200 identical drives per policy}
+\label{tab:res}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Policy & Return & Missed & Sent & Urgent & Urgent \\
+ & /episode & hazards \% & /step & sent \% & wait (s) \\
+\midrule
+\multicolumn{6}{l}{\emph{Highway}}\\
+\textbf{DQN} (5 seeds) & 279 & 4.8 & 0.42 & 99 & 0.01\\
+always-radar & -2203 & 0.0 & 0.00 & 0 & --\\
+always-comm & -1945 & 100.0 & 0.99 & -- & --\\
+random & -712 & 48.4 & 1.01 & 100 & 0.09\\
+\multicolumn{6}{l}{\emph{City}}\\
+\textbf{DQN} (5 seeds) & 235 & 7.3 & 0.55 & 100 & 0.02\\
+always-radar & -1314 & 0.0 & 0.00 & 0 & --\\
+always-comm & -2069 & 100.0 & 0.99 & -- & --\\
+random & -807 & 50.1 & 1.03 & 100 & 0.09\\
+\bottomrule
+\end{tabular}
+\end{table}
